@@ -1,0 +1,2 @@
+parsec==3.15
+primefac==2.0.12
