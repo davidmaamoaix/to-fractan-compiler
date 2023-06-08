@@ -4,8 +4,7 @@ from typing import Set, List, Tuple
 from .emit_context import EmitContext
 
 
-# code segment that has yet to be mapped to concrete registers
-UnmappedCodeSegment = List[Tuple[List[int], List[int]]]
+UnmappedCodeSegment = List[Tuple[int, int]]
 
 
 class ParamType(enum):
