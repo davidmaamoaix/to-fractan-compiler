@@ -1,2 +1,2 @@
 from .evaluator import *
-from .primes import *
+from .var_alloc import *

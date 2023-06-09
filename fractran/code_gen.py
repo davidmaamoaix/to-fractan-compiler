@@ -1,10 +1,11 @@
 import enum
-from typing import Set, List, Tuple
+from typing import Dict, List, Tuple
 
 from .emit_context import EmitContext
+from .var_alloc import AllocVar, C, L, P
 
 
-UnmappedCodeSegment = List[Tuple[int, int]]
+FracCode = List[Tuple[List[AllocVar], List[AllocVar]]]
 
 
 class ParamType(enum):
@@ -12,60 +13,67 @@ class ParamType(enum):
     OUT = 1
 
 
-class UnmappedCode:
-    """
-    Resembles a section of code containing unmapped instructions waiting to be
-    assigned concrete registers during procedure relocation. It contains a set
-    of unmapped variables (local variables) and the unmapped instructions.
+class CodeSegment:
+    
+    # on initialization
+    code: FracCode
 
-    Unmapped values are represented by negative integers. Each negative number
-    is local to its `UnmappedCode`.
+    # after prime allocation
+    index: Tuple[int, int]
 
-    Each tuple contains two lists: nominator and denominator. After mapping
-    negative values to concrete primes, the product of each list becomes the
-    nominator and denominator respectively.
-    """
-
-    remap: Set[int]
-    instructions: UnmappedCodeSegment
-
-    def __init__(self, code: UnmappedCodeSegment):
-        self.instructions = code
-        self.remap = set.union(*[{i for i in n + d if i < 0} for n, d in code])
-
-    def unmap_size(self) -> int:
-        return len(self.remap)
+    def __init__(self, code: FracCode):
+        self.code = code
     
 
 class Procedure:
 
     # on initialization
-    locals_count: int
+    locals_count: int # excluding the number of parameters
     params_type: List[ParamType]
-    code: List[UnmappedCode]
+    code: List[CodeSegment]
 
     # after prime allocation
-    index: int
-    params_index: List[int]
+    locals_map: Dict[int, int]
 
-    def __init__(self, code: List[UnmappedCode]):
-        pass
-        
+    def __init__(
+        self,
+        n_locals: int,
+        params_type: List[ParamType],
+        code: List[CodeSegment]
+    ):
+        self.locals_count = n_locals
+        self.params_type = params_type
+        self.code = code
 
 
 # (macro) destructive move: a -> b
-def move(a: int, b: int) -> UnmappedCode:
-    return UnmappedCode([([b], [a])])
+def move(a: AllocVar, b: AllocVar) -> CodeSegment:
+    return CodeSegment([([b], [a])])
 
 
 # (macro) destructive duplication: a -> b & c
-def duplicate(a: int, b: int, c: int) -> UnmappedCode:
-    return UnmappedCode([([b, c], [a])])
+def duplicate(a: AllocVar, b: AllocVar, c: AllocVar) -> CodeSegment:
+    return CodeSegment([([b, c], [a])])
 
 
 # (macro) move: a -> b
-def copy(a: int, b: int) -> UnmappedCode:
-    return UnmappedCode([
+def copy(a: int, b: int) -> CodeSegment:
+    return CodeSegment([
         ([b, 2], [a]),
         ([a], [2])
     ])
+
+
+# arithmetic procedures
+
+# (procedure) add
+ADD = Procedure(0, [ParamType.IN, ParamType.IN, ParamType.OUT], [
+    ([L(2)], [L(0)]),
+    ([L(2)], [L(1)])
+])
+
+# (procedure) sub
+SUB = Procedure(0, [ParamType.IN, ParamType.IN, ParamType.OUT], [
+    ([C(1)], [L(0), L(1)]),
+    ()
+])

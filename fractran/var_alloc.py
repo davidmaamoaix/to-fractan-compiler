@@ -1,7 +1,7 @@
 from typing import List
 
 
-def primes(n: int) -> List[int]:
+def gen_primes(n: int) -> List[int]:
     if n <= 0:
         return []
     
@@ -19,13 +19,27 @@ def primes(n: int) -> List[int]:
     return primes
 
 
+class Allocator:
+
+    index: int
+    primes: List[int]
+
+    def __init__(self, size):
+        self.index = 0
+        self.primes = gen_primes(size)
+
+    def allocate(self, size) -> List[int]:
+        vars = self.primes[self.index : self.index + size]
+        self.index += size
+        return vars
+
+
 class AllocVar:
     """
     Represents a numeric value (always a prime) in the generated FRACTRAN code.
-    Its child classes resembles 3 different possible semantics:
+    Its child classes resembles 2 different possible semantics:
     - Constant: value determined during instantiation
-    - Local variable: value allocated during prime allocation
-    - Parameter: value allocated during prime allocation
+    - Local variable & parameter: value allocated during prime allocation
     """
 
     def get_val(self) -> int:
@@ -44,25 +58,11 @@ class C(AllocVar):
 
 class L(AllocVar):
 
+    local_index: int
     allocated_prime: int
 
-    def assign_prime(self, prime: int):
-        self.allocate_prime = prime
-    
-    def get_val(self) -> int:
-        return self.allocated_prime
-    
-    
-class P(AllocVar):
-
-    param_index: int
-    allocated_prime: int
-
-    def __init__(self, param_index: int):
-        self.param_index = param_index
-
-    def assign_prime(self, prime: int):
-        self.allocated_prime = prime
+    def __init__(self, local_index: int):
+        self.local_index = local_index
     
     def get_val(self) -> int:
         return self.allocated_prime

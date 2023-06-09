@@ -1,6 +1,6 @@
 from typing import Dict
 
-from .procedures import Procedure
+from .code_gen import Procedure
 
 
 class Program:
