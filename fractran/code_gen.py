@@ -2,7 +2,7 @@ import enum
 from typing import Dict, List, Tuple
 
 from .emit_context import EmitContext
-from .var_alloc import AllocVar, C, L, P
+from .var_alloc import AllocVar, C, L, Allocator
 
 
 FracCode = List[Tuple[List[AllocVar], List[AllocVar]]]
@@ -23,7 +23,10 @@ class CodeSegment:
 
     def __init__(self, code: FracCode):
         self.code = code
-    
+
+    def assign_index(self, alloc: Allocator) -> None:
+        self.index = tuple(alloc.allocate(2))
+
 
 class Procedure:
 

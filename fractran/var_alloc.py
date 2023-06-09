@@ -28,7 +28,7 @@ class Allocator:
         self.index = 0
         self.primes = gen_primes(size)
 
-    def allocate(self, size) -> List[int]:
+    def allocate(self, size: int) -> List[int]:
         vars = self.primes[self.index : self.index + size]
         self.index += size
         return vars
