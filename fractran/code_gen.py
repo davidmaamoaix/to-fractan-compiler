@@ -1,8 +1,7 @@
 import enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple, Union
 
-from .emit_context import EmitContext
-from .var_alloc import AllocVar, C, L, Allocator
+from .var_alloc import AllocVar, Allocator
 
 
 FracCode = List[Tuple[List[AllocVar], List[AllocVar]]]
@@ -31,22 +30,39 @@ class CodeSegment:
 class Procedure:
 
     # on initialization
-    locals_count: int # excluding the number of parameters
+    name: str
+    locals_count: int # including the number of parameters
     params_type: List[ParamType]
     code: List[CodeSegment]
+    proc_usage: Set[str]
 
     # after prime allocation
     locals_map: Dict[int, int]
 
     def __init__(
         self,
+        name: str,
         n_locals: int,
         params_type: List[ParamType],
-        code: List[CodeSegment]
+        code: List[CodeSegment],
+        proc_usage: Union[Set[str], None] = None
     ):
+        self.name = name
         self.locals_count = n_locals
         self.params_type = params_type
         self.code = code
+        self.proc_usage = proc_usage
+
+    def allocation_size(self) -> int:
+        # each segment requires 2 indices
+        return len(self.code) * 2 + self.locals_count
+    
+    def allocate_primes(self, alloc: Allocator) -> None:
+        primes = alloc.allocate(self.locals_count)
+        self.locals_map = {k for k in zip(range(self.locals_count), primes)}
+
+        for c in self.code:
+            c.assign_index(alloc)
 
 
 # (macro) destructive move: a -> b
@@ -65,18 +81,3 @@ def copy(a: int, b: int) -> CodeSegment:
         ([b, 2], [a]),
         ([a], [2])
     ])
-
-
-# arithmetic procedures
-
-# (procedure) add
-ADD = Procedure(0, [ParamType.IN, ParamType.IN, ParamType.OUT], [
-    ([L(2)], [L(0)]),
-    ([L(2)], [L(1)])
-])
-
-# (procedure) sub
-SUB = Procedure(0, [ParamType.IN, ParamType.IN, ParamType.OUT], [
-    ([C(1)], [L(0), L(1)]),
-    ()
-])
