@@ -1,18 +1,17 @@
 from typing import Dict, List, Union
 
-from fractran.var_alloc import CodeGenContext
 
 # Allocation Process:
 # 
 # The order of prime allocation is as follows:
 # 1. Program prime allocation: primes allocated for input & output variables
-# 2. Pre-procedure allocation: primes allocated for local variables
-# 3. Procedure allocation: primes allocated for procedure indices
-# 4. Post-procedure linking: `P` placeholders gets their value populated
+# 2. Code segment allocation: primes allocated for code segment indices
+# 3. Pre-procedure allocation: primes allocated for local variables
 #
 # The above ordering is done in consideration of the string length of the
 # emitted code and IO format. Input & output takes up the shortest primes, then
-# 
+# the indices of code segments, then the local variables of each procedure (due
+# to not being used as often).
 
 
 def gen_primes(n: int) -> List[int]:
@@ -20,8 +19,8 @@ def gen_primes(n: int) -> List[int]:
         return []
     
     sieve = [True] * n * 20
-    primes = [2]
-    for i in range(3, len(sieve), 2):
+    primes = [3]
+    for i in range(5, len(sieve), 2):
         if sieve[i]:
             primes.append(i)
             if len(primes) >= n:
@@ -38,7 +37,7 @@ class Allocator:
     index: int
     primes: List[int]
 
-    def __init__(self, size):
+    def __init__(self, size: int):
         self.index = 0
         self.primes = gen_primes(size)
 
@@ -58,8 +57,8 @@ class CodeGenContext:
     def __init__(
         self,
         p_map: Dict[str, int],
-        i_map: Dict[str, int],
-        o_map: Dict[str, int]
+        i_map: Dict[int, int],
+        o_map: Dict[int, int]
     ):
         self.locals_map = None
         self.procs_map = p_map
@@ -83,6 +82,7 @@ class AllocVar:
     def get_val(self, _: CodeGenContext) -> int:
         raise NotImplementedError
     
+
 # shorthands (spaghetti but explicit meh)
 
 class C(AllocVar):
