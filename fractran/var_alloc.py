@@ -76,11 +76,11 @@ class AllocVar:
     Its child classes resembles 4 different possible semantics:
     - Constant: value determined during instantiation
     - Local variable & parameter: value allocated during prime allocation
-    - Procedure: value determined AFTER instantiation
-    - IO
+    - Procedure: value determined during prime allocation
+    - Input & output: value determined during prime allocation
     """
 
-    def get_val(self, ctx: CodeGenContext) -> int:
+    def get_val(self, _: CodeGenContext) -> int:
         raise NotImplementedError
     
 # shorthands (spaghetti but explicit meh)
