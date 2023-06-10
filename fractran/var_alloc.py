@@ -1,5 +1,7 @@
 from typing import Dict, List, Union
 
+from fractran.var_alloc import CodeGenContext
+
 # Allocation Process:
 # 
 # The order of prime allocation is as follows:
@@ -78,9 +80,10 @@ class AllocVar:
     - IO
     """
 
-    def get_val(self) -> int:
+    def get_val(self, ctx: CodeGenContext) -> int:
         raise NotImplementedError
     
+# shorthands (spaghetti but explicit meh)
 
 class C(AllocVar):
 
@@ -89,20 +92,19 @@ class C(AllocVar):
     def __init__(self, val: int):
         self.val = val
 
-    def get_val(self) -> int:
+    def get_val(self, _: CodeGenContext) -> int:
         return self.val
 
 
 class L(AllocVar):
 
     local_index: int
-    allocated_prime: int
 
     def __init__(self, local_index: int):
         self.local_index = local_index
     
-    def get_val(self) -> int:
-        return self.allocated_prime
+    def get_val(self, ctx: CodeGenContext) -> int:
+        return ctx.locals_map[self.local_index]
     
 
 class P(AllocVar):
@@ -112,6 +114,9 @@ class P(AllocVar):
     def __init__(self, proc_name: str):
         self.proc_name = proc_name
 
+    def get_val(self, ctx: CodeGenContext) -> int:
+        return ctx.procs_map[self.proc_name]
+
 
 class I(AllocVar):
 
@@ -120,5 +125,16 @@ class I(AllocVar):
     def __init__(self, input_index: int):
         self.input_index = input_index
 
-    def get_val(self) -> int:
-        pass
+    def get_val(self, ctx: CodeGenContext) -> int:
+        return ctx.inputs_map[self.input_index]
+    
+
+class O(AllocVar):
+
+    output_index: int
+
+    def __init__(self, output_index: int):
+        self.output_index = output_index
+
+    def get_val(self, ctx: CodeGenContext) -> int:
+        return ctx.outputs_map[self.output_index]
