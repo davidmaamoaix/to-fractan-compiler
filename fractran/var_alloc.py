@@ -104,6 +104,9 @@ class L(AllocVar):
         self.local_index = local_index
     
     def get_val(self, ctx: CodeGenContext) -> int:
+        if ctx.locals_map is None:
+            raise RuntimeError("Local variable mapping is unset")
+
         return ctx.locals_map[self.local_index]
     
 
