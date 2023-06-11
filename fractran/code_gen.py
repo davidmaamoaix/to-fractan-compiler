@@ -23,9 +23,6 @@ class CodeSegment:
     def __init__(self, code: FracCode):
         self.code = code
 
-    def assign_index(self, index: Tuple[int, int]) -> None:
-        self.index = index
-
 
 class Procedure:
 
@@ -52,13 +49,6 @@ class Procedure:
         self.params_type = params_type
         self.code = code
         self.proc_usage = proc_usage if proc_usage else set()
-
-    def locals_size(self) -> int:
-        return self.n_locals
-
-    def index_size(self) -> int:
-        # each segment requires 2 indices
-        return 2 * len(self.code)
     
     def set_seg_indices(self, indices: List[int]) -> int:
         """
@@ -68,7 +58,7 @@ class Procedure:
         """
 
         for i, segment in zip(range(0, len(indices), 2), self.code):
-            segment.assign_index((indices[i], indices[i + 1]))
+            segment.index = (indices[i], indices[i + 1])
 
         return indices[0]
 

@@ -1,5 +1,5 @@
 from .code_gen import CodeSegment, Procedure, ParamType
-from .var_alloc import AllocVar, C, L, P
+from .var_alloc import C, L
 
 
 # arithmetic procedures

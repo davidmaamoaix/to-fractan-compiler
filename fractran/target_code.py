@@ -1,10 +1,35 @@
+import math
+import networkx as nx
 from typing import Dict, List, Tuple
 
 from .var_alloc import Allocator, CodeGenContext
 from .code_gen import Procedure
 
 
-class TargetProgram:
+class TargetCode:
+
+    code: List[Tuple[int, int]]
+    input_primes: List[int]
+    output_primes: List[int]
+
+    def __init__(
+        self,
+        code: List[Tuple[int, int]],
+        i_p: List[int],
+        o_p: List[int]
+    ) -> None:
+        for n, d in code:
+            if math.gcd(n, d) != 1:
+                raise ValueError(
+                    f'fractions in code not in simplest form: {n}/{d}'
+                )
+        
+        self.code = code
+        self.input_primes = i_p
+        self.output_primes = o_p
+        
+
+class CodeGeneration:
 
     io_size: Tuple[int, int]
     procs: Dict[str, Procedure]
@@ -17,12 +42,24 @@ class TargetProgram:
         self.procs = {k: v for k, v in procs}
         self.io_size = io_size
 
-    def prime_allocation(self) -> None:
-        # TODO: togological sort on procedures
+    def prime_allocation(self) -> TargetCode:
+        g = nx.DiGraph()
+        g.add_nodes_from(self.procs.keys())
+        for s, p in self.procs.items():
+            for used in p.proc_usage:
+                g.add_edge(s, used)
+
+        try:
+            nx.cycles.find_cycle(g)
+        except nx.exception.NetworkXNoCycle:
+            pass
+        else:
+            raise RuntimeError('cycle detected in procedure invocation')
+        # TODO: topological sort on procedures
 
         n_primes = sum(self.io_size)
         n_primes += sum(
-            p.locals_size() + p.index_size()
+            p.n_locals + 2 * len(p.code)
             for p in self.procs.values()
         )
 
@@ -38,10 +75,14 @@ class TargetProgram:
         # procedure index allocation
         p_map = {}
         for s, p in self.procs.items():
-            index_primes = alloc.allocate(p.index_size())
+            index_primes = alloc.allocate(2 * len(p.code))
             p_map[s] = p.set_seg_indices(index_primes)
 
         ctx = CodeGenContext(p_map, i_map, o_map)
 
         # local variable allocation
-        
+        for p in self.procs.values():
+            local_primes = alloc.allocate(p.n_locals)
+            p.locals_map = {k: v for k, v in enumerate(local_primes)}
+
+
