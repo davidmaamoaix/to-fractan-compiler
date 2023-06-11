@@ -1,6 +1,6 @@
 import math
 import networkx as nx
-from typing import Dict, List, Tuple
+from typing import Dict, List, Set, Tuple
 
 from .var_alloc import Allocator, CodeGenContext
 from .code_gen import Procedure
@@ -55,7 +55,9 @@ class CodeGeneration:
             pass
         else:
             raise RuntimeError('cycle detected in procedure invocation')
-        # TODO: topological sort on procedures
+        
+        nodes = nx.dag.topological_sort(g)
+        sorted_procedures = [(n, self.procs[n]) for n in nodes]
 
         n_primes = sum(self.io_size)
         n_primes += sum(
@@ -74,14 +76,14 @@ class CodeGeneration:
 
         # procedure index allocation
         p_map = {}
-        for s, p in self.procs.items():
+        for s, p in sorted_procedures:
             index_primes = alloc.allocate(2 * len(p.code))
             p_map[s] = p.set_seg_indices(index_primes)
 
         ctx = CodeGenContext(p_map, i_map, o_map)
 
         # local variable allocation
-        for p in self.procs.values():
+        for _, p in sorted_procedures:
             local_primes = alloc.allocate(p.n_locals)
             p.locals_map = {k: v for k, v in enumerate(local_primes)}
 
