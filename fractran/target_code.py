@@ -2,7 +2,7 @@ import math
 import networkx as nx
 from typing import Dict, List, Set, Tuple
 
-from .var_alloc import Allocator, CodeGenContext
+from .var_alloc import Allocator, VarAllocContext
 from .code_gen import Procedure
 
 
@@ -80,11 +80,20 @@ class CodeGeneration:
             index_primes = alloc.allocate(2 * len(p.code))
             p_map[s] = p.set_seg_indices(index_primes)
 
-        ctx = CodeGenContext(p_map, i_map, o_map)
+        ctx = VarAllocContext(p_map, i_map, o_map)
 
         # local variable allocation
-        for _, p in sorted_procedures:
+        locals_map: Dict[str, Dict[int, int]] = {}
+        for s, p in sorted_procedures:
             local_primes = alloc.allocate(p.n_locals)
-            p.locals_map = {k: v for k, v in enumerate(local_primes)}
+            locals_map[s] = {k: v for k, v in enumerate(local_primes)}
 
+        # code generation for each procedure
+        target_code: List[Tuple[int, int]] = []
+        for s, p in sorted_procedures:
+            ctx.set_locals_map(locals_map[s])
+            proc_code = p.code_gen(ctx)
+            target_code.extend(proc_code)
 
+        output = TargetCode(target_code, input_primes, output_primes)
+        return output

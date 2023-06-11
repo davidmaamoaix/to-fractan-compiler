@@ -1,7 +1,8 @@
 import enum
+import functools
 from typing import Dict, List, Set, Tuple, Union
 
-from .var_alloc import AllocVar, C
+from .var_alloc import AllocVar, VarAllocContext, C
 
 
 FracCode = List[Tuple[List[AllocVar], List[AllocVar]]]
@@ -23,18 +24,34 @@ class CodeSegment:
     def __init__(self, code: FracCode):
         self.code = code
 
+    def get_entry_index(self) -> int:
+        return self.index[0]
+    
+    def code_gen(
+        self,
+        ctx: VarAllocContext,
+        next_segment_index: int = 1
+    ) -> List[Tuple[int, int]]:
+        target_code: List[Tuple[int, int]] = []
+        for ns, ds in self.code:
+            n = functools.reduce(lambda a, b: a * b.get_val(ctx), ns, 1)
+            d = functools.reduce(lambda a, b: a * b.get_val(ctx), ds, 1)
+            target_code.append((n, d))
+        
+        # segment index (header and footer)
+        target_code.insert(0, (self.index[1], self.index[0]))
+        target_code.append((next_segment_index, self.index[1]))
+
+        return target_code
+
 
 class Procedure:
 
-    # on initialization
     name: str
     n_locals: int # including the number of parameters
     params_type: List[ParamType]
     code: List[CodeSegment]
     proc_usage: Set[str]
-
-    # after prime allocation
-    locals_map: Dict[int, int]
 
     def __init__(
         self,
@@ -61,6 +78,9 @@ class Procedure:
             segment.index = (indices[i], indices[i + 1])
 
         return indices[0]
+    
+    def code_gen(self, ctx: VarAllocContext) -> List[Tuple[int, int]]:
+        pass
 
 
 # (macro) destructive move: a -> b

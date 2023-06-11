@@ -47,7 +47,7 @@ class Allocator:
         return vars
     
 
-class CodeGenContext:
+class VarAllocContext:
 
     locals_map: Union[Dict[int, int], None]
     procs_map: Dict[str, int]
@@ -79,7 +79,7 @@ class AllocVar:
     - Input & output: value determined during prime allocation
     """
 
-    def get_val(self, _: CodeGenContext) -> int:
+    def get_val(self, _: VarAllocContext) -> int:
         raise NotImplementedError
     
 
@@ -92,7 +92,7 @@ class C(AllocVar):
     def __init__(self, val: int):
         self.val = val
 
-    def get_val(self, _: CodeGenContext) -> int:
+    def get_val(self, _: VarAllocContext) -> int:
         return self.val
 
 
@@ -103,7 +103,7 @@ class L(AllocVar):
     def __init__(self, local_index: int):
         self.local_index = local_index
     
-    def get_val(self, ctx: CodeGenContext) -> int:
+    def get_val(self, ctx: VarAllocContext) -> int:
         if ctx.locals_map is None:
             raise RuntimeError("Local variable mapping is unset")
 
@@ -117,7 +117,7 @@ class P(AllocVar):
     def __init__(self, proc_name: str):
         self.proc_name = proc_name
 
-    def get_val(self, ctx: CodeGenContext) -> int:
+    def get_val(self, ctx: VarAllocContext) -> int:
         return ctx.procs_map[self.proc_name]
 
 
@@ -128,7 +128,7 @@ class I(AllocVar):
     def __init__(self, input_index: int):
         self.input_index = input_index
 
-    def get_val(self, ctx: CodeGenContext) -> int:
+    def get_val(self, ctx: VarAllocContext) -> int:
         return ctx.inputs_map[self.input_index]
     
 
@@ -139,5 +139,5 @@ class O(AllocVar):
     def __init__(self, output_index: int):
         self.output_index = output_index
 
-    def get_val(self, ctx: CodeGenContext) -> int:
+    def get_val(self, ctx: VarAllocContext) -> int:
         return ctx.outputs_map[self.output_index]
