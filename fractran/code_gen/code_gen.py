@@ -84,18 +84,22 @@ class Procedure:
 
 
 # (macro) destructive move: a -> b
-def move(a: AllocVar, b: AllocVar) -> CodeSegment:
-    return CodeSegment([([b], [a])])
+def move(a: AllocVar, b: AllocVar) -> List[CodeSegment]:
+    return [CodeSegment([([b], [a])])]
 
 
 # (macro) destructive duplication: a -> b & c
-def duplicate(a: AllocVar, b: AllocVar, c: AllocVar) -> CodeSegment:
-    return CodeSegment([([b, c], [a])])
+def duplicate(a: AllocVar, b: AllocVar, c: AllocVar) -> List[CodeSegment]:
+    return [CodeSegment([([b, c], [a])])]
 
 
 # (macro) move: a -> b
-def copy(a: AllocVar, b: AllocVar) -> CodeSegment:
-    return CodeSegment([
-        ([b, C(2)], [a]),
-        ([a], [C(2)])
-    ])
+def copy(a: AllocVar, b: AllocVar) -> List[CodeSegment]:
+    return [
+        CodeSegment([
+            ([b, C(2)], [a])
+        ]),
+        CodeSegment([
+            ([a], [C(2)])
+        ])
+    ]

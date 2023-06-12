@@ -98,16 +98,15 @@ class C(AllocVar):
 
 class L(AllocVar):
 
+    proc_name: str
     local_index: int
 
-    def __init__(self, local_index: int):
+    def __init__(self, proc_name: str, local_index: int):
+        self.proc_name = proc_name
         self.local_index = local_index
     
     def get_val(self, ctx: VarAllocContext) -> int:
-        if ctx.locals_map is None:
-            raise RuntimeError("Local variable mapping is unset")
-
-        return ctx.locals_map[self.local_index]
+        return ctx.locals_map[self.proc_name][self.local_index]
     
 
 class P(AllocVar):
