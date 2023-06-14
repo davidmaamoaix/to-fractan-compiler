@@ -1,7 +1,7 @@
 import enum
 from typing import Dict, Set, Tuple
 
-from fractran.ir.two_addrs import Operand
+from fractran.ir.two_addrs import ControlFlowInfo, Operand
 
 
 class ControlFlowInfo:
@@ -38,6 +38,35 @@ class IRCode:
     
     def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
         raise NotImplementedError
+    
+
+class GoToCode(IRCode):
+
+    label: str
+
+    def __init__(self, label: str) -> None:
+        self.label = label
+
+    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+        return {info.labels[self.label]}
+    
+
+class GoToIfCode(IRCode):
+
+    expr: Operand
+    label: str
+
+    def __init__(self, expr: Operand, label: str) -> None:
+        self.expr = expr
+        self.label = label
+
+    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+        jump_line = {info.labels[self.label]}
+
+        if curr_line + 1 < info.length:
+            jump_line.add(curr_line + 1)
+
+        return jump_line
 
 
 class TwoAddrCode(IRCode):
