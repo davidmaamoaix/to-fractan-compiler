@@ -18,8 +18,8 @@ def create_control_flow_graph(code: List[IRCode]) -> nx.DiGraph:
 
 def liveness(proc: ProcedureIR) -> List[Set[str]]:
     length = len(proc.code)
-    live = [set() for _ in range(length)]
     cfg = create_control_flow_graph(proc.code)
+    live: List[Set[str]] = [set() for _ in range(length)]
     out_vars = {k for k, v in proc.params_type.items() if v == ParamType.OUT}
 
     for node, deg in cfg.out_degree():
@@ -31,9 +31,11 @@ def liveness(proc: ProcedureIR) -> List[Set[str]]:
         changed = False
 
         for lineno in range(length - 1, -1, -1):
-            next_live_set = set.union(
-                proc.code[i].get_live_locals()
-                for i in cfg.successors(lineno)
+            next_live_set: Set[str] = set.union(
+                *[
+                    proc.code[i].get_live_locals()
+                    for i in cfg.successors(lineno)
+                ]
             )
 
             unlive_vars = proc.code[lineno].get_unlive_locals()

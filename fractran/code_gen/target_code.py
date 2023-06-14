@@ -80,7 +80,6 @@ class CodeGeneration:
             index_primes = alloc.allocate(2 * len(p.code))
             p_map[s] = p.set_seg_indices(index_primes)
 
-        ctx = VarAllocContext(p_map, i_map, o_map)
 
         # local variable allocation
         locals_map: Dict[str, Dict[int, int]] = {}
@@ -89,9 +88,9 @@ class CodeGeneration:
             locals_map[s] = {k: v for k, v in enumerate(local_primes)}
 
         # code generation for each procedure
+        ctx = VarAllocContext(locals_map, p_map, i_map, o_map)
         target_code: List[Tuple[int, int]] = []
         for s, p in sorted_procedures:
-            ctx.set_locals_map(locals_map[s])
             proc_code = p.code_gen(ctx)
             target_code.extend(proc_code)
 

@@ -1,8 +1,6 @@
 import enum
 from typing import Dict, List, Set, Tuple
 
-from fractran.ir.two_addrs import ControlFlowInfo, Operand
-
 
 class ParamType(enum.Enum):
     IN = 0
@@ -77,7 +75,7 @@ class IRCode:
     def get_unlive_locals(self) -> Set[str]:
         return set()
     
-    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+    def get_next_cfg(self, curr_line: int, info: ProcedureInfo) -> Set[int]:
         raise NotImplementedError
     
 
@@ -88,7 +86,7 @@ class GoToCode(IRCode):
     def __init__(self, label: str) -> None:
         self.label = label
 
-    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+    def get_next_cfg(self, curr_line: int, info: ProcedureInfo) -> Set[int]:
         return {info.labels[self.label]}
     
 
@@ -104,7 +102,7 @@ class GoToIfCode(IRCode):
     def get_live_locals(self) -> Set[str]:
         return self.expr.get_used_locals()
 
-    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+    def get_next_cfg(self, curr_line: int, info: ProcedureInfo) -> Set[int]:
         jump_line = {info.labels[self.label]}
 
         if curr_line + 1 < info.length:
@@ -137,7 +135,7 @@ class TwoAddrCode(IRCode):
 
         return set()
     
-    def get_next_cfg(self, curr_line: int, info: ControlFlowInfo) -> Set[int]:
+    def get_next_cfg(self, curr_line: int, info: ProcedureInfo) -> Set[int]:
         next_line = curr_line + 1
         if next_line < info.length:
             return {next_line}

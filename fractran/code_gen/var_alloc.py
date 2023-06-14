@@ -49,24 +49,22 @@ class Allocator:
 
 class VarAllocContext:
 
-    locals_map: Union[Dict[int, int], None]
+    locals_map: Dict[str, Dict[int, int]]
     procs_map: Dict[str, int]
     inputs_map: Dict[int, int]
     outputs_map: Dict[int, int]
 
     def __init__(
         self,
+        l_map: Dict[str, Dict[int, int]],
         p_map: Dict[str, int],
         i_map: Dict[int, int],
         o_map: Dict[int, int]
     ):
-        self.locals_map = None
+        self.locals_map = l_map
         self.procs_map = p_map
         self.inputs_map = i_map
         self.outputs_map = o_map
-
-    def set_locals_map(self, l_map: Dict[int, int]) -> None:
-        self.locals_map = l_map
 
 
 class AllocVar:
