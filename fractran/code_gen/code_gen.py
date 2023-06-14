@@ -3,14 +3,10 @@ import functools
 from typing import Dict, List, Set, Tuple, Union
 
 from .var_alloc import AllocVar, VarAllocContext, C
+from ..ir.two_addrs import ParamType
 
 
 FracCode = List[Tuple[List[AllocVar], List[AllocVar]]]
-
-
-class ParamType(enum.Enum):
-    IN = 0
-    OUT = 1
 
 
 class CodeSegment:
