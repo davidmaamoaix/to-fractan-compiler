@@ -30,6 +30,16 @@ class OpCode(enum.Enum):
     MOD = enum.auto()
 
 
+OPCODE_REPR = {
+    OpCode.ADD: '+=',
+    OpCode.SUB: '-=',
+    OpCode.MUL: '*=',
+    OpCode.DIV: '/=',
+    OpCode.MOD: '%=',
+    OpCode.MOV: '<-'
+}
+
+
 class Operand:
     
     def get_used_locals(self) -> Set[str]:
@@ -42,19 +52,22 @@ class Constant(Operand):
 
     def __init__(self, value: int) -> None:
         self.value = value
+    
+    def __str__(self) -> str:
+        return str(self.value)
 
 
 class LocalVar(Operand):
     
     proc_name: str
-    index: int
+    name: str
 
-    def __init__(self, proc_name: str, index: int) -> None:
+    def __init__(self, proc_name: str, name: str) -> None:
         self.proc_name = proc_name
-        self.index = index
+        self.name = name
 
     def get_used_locals(self) -> Set[str]:
-        return {self.proc_name}
+        return {self.name}
 
 
 class IOVar(Operand):
